@@ -22,15 +22,26 @@ class ParserTests: XCTestCase {
     }
     
     func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        let filePath = Path("example.feature")
+        let features = try! Feature.parse([filePath])
+        XCTAssert(features.count == 1)
+        XCTAssert(features[0].name == "An array")
+        XCTAssert(features[0].scenarios.count == 2)
+        let scenarios = features[0].scenarios
+        XCTAssert(scenarios[0].name == "Appending to an array")
+        XCTAssert(scenarios[0].line == 3)
+        XCTAssert(scenarios[0].line == 3)
+        XCTAssert(scenarios[0].steps[0] == .Given("I have an empty array"))
+        XCTAssert(scenarios[0].steps[1] == .When("I add 1 to the array"))
+        XCTAssert(scenarios[0].steps[2] == .Then("I should have 1 item in the array"))
+        XCTAssert(scenarios[0].steps[3] == .And("this is undefined statement for test"))
+        XCTAssert(scenarios[0].steps.count == 4)
+        XCTAssert(scenarios[1].name == "Filtering an array")
+        XCTAssert(scenarios[1].line == 9)
+        XCTAssert(scenarios[1].steps.count == 3)
+        XCTAssert(scenarios[1].examples!.count == 2)
+        XCTAssert(scenarios[1].examples!.dictionaryArray["value1"]! == ["1","10"])
+        XCTAssert(scenarios[1].examples!.dictionaryArray["value5"]! == ["5", "15"])
+        XCTAssert(scenarios[1].examples!.dictionaryArray["value2"]! == ["2", "12"])
     }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
 }
