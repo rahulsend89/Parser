@@ -21,13 +21,48 @@ class ParserTests: XCTestCase {
         super.tearDown()
     }
     
+    func testTunner(){
+        var array: [Int] = []
+        
+        given("^I have an empty array$") { match in
+            array = []
+        }
+        
+        given("^I have an array with the numbers (\\d+) though (\\d+)$") { match in
+            let start = match.groups[1]
+            let end = match.groups[2]
+            
+            array = Array(Int(start)! ..< Int(end)!)
+        }
+        
+        when("^I add (\\d+) to the array$") { match in
+            let number = Int(match.groups[1])!
+            array.append(number)
+        }
+        
+        when("^I filter the array for even numbers$") { match in
+            array = array.filter { $0 % 2 == 0 }
+        }
+        
+        then("^I should have (\\d+) items? in the array$") { match in
+            let count = Int(match.groups[1])!
+            try expect(array.count == count)
+        }
+        
+        and("^this is undefined statement for test$") { match in
+            try expect(true)
+        }
+        
+        testWithFile("example.feature")
+    }
+    
     func testExample() {
         let filePath = Path("example.feature")
         let features = try! Feature.parse([filePath])
         XCTAssert(features.count == 1)
         XCTAssert(features[0].name == "An array")
-        XCTAssert(features[0].scenarios.count == 2)
         let scenarios = features[0].scenarios
+        XCTAssert(scenarios.count == 3)
         XCTAssert(scenarios[0].name == "Appending to an array")
         XCTAssert(scenarios[0].line == 3)
         XCTAssert(scenarios[0].line == 3)
@@ -37,11 +72,19 @@ class ParserTests: XCTestCase {
         XCTAssert(scenarios[0].steps[3] == .And("this is undefined statement for test"))
         XCTAssert(scenarios[0].steps.count == 4)
         XCTAssert(scenarios[1].name == "Filtering an array")
-        XCTAssert(scenarios[1].line == 9)
         XCTAssert(scenarios[1].steps.count == 3)
-        XCTAssert(scenarios[1].examples!.count == 2)
-        XCTAssert(scenarios[1].examples!.dictionaryArray["value1"]! == ["1","10"])
-        XCTAssert(scenarios[1].examples!.dictionaryArray["value5"]! == ["5", "15"])
-        XCTAssert(scenarios[1].examples!.dictionaryArray["value2"]! == ["2", "12"])
+        XCTAssert(scenarios[1].steps[0] == .Given("I have an array with the numbers 1 though 5"))
+        XCTAssert(scenarios[1].steps[1] == .When("I filter the array for even numbers"))
+        XCTAssert(scenarios[1].steps[2] == .Then("I should have 2 items in the array"))
+        XCTAssert(scenarios[2].name == "Filtering an array")
+        XCTAssert(scenarios[2].steps.count == 3)
+        XCTAssert(scenarios[2].steps[0] == .Given("I have an array with the numbers 10 though 15"))
+        XCTAssert(scenarios[2].steps[1] == .When("I filter the array for even numbers"))
+        XCTAssert(scenarios[2].steps[2] == .Then("I should have 3 items in the array"))
+        
+//        XCTAssert(scenarios[1].examples!.count == 2)
+//        XCTAssert(scenarios[1].examples!.dictionaryArray["value1"]! == ["1","10"])
+//        XCTAssert(scenarios[1].examples!.dictionaryArray["value5"]! == ["5", "15"])
+//        XCTAssert(scenarios[1].examples!.dictionaryArray["value2"]! == ["2", "12"])
     }
 }

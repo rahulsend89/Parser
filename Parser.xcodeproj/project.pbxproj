@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BEBBC3671C679BBA00CDF867 /* StepsCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBBC3661C679BBA00CDF867 /* StepsCreator.swift */; };
 		E8C069761C636629006DBD1D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C069751C636629006DBD1D /* AppDelegate.swift */; };
 		E8C069781C636629006DBD1D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C069771C636629006DBD1D /* ViewController.swift */; };
 		E8C0697B1C636629006DBD1D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E8C069791C636629006DBD1D /* Main.storyboard */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BEBBC3661C679BBA00CDF867 /* StepsCreator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StepsCreator.swift; sourceTree = "<group>"; };
 		E8C069721C636629006DBD1D /* Parser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Parser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8C069751C636629006DBD1D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E8C069771C636629006DBD1D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 				E8C069751C636629006DBD1D /* AppDelegate.swift */,
 				E8C069771C636629006DBD1D /* ViewController.swift */,
 				E8C069A61C6366BF006DBD1D /* Feature.swift */,
+				BEBBC3661C679BBA00CDF867 /* StepsCreator.swift */,
 				E8D5BBFA1C63D38C0074F9B8 /* Regex.swift */,
 				E8C069791C636629006DBD1D /* Main.storyboard */,
 				E8C069AB1C636923006DBD1D /* example.feature */,
@@ -269,6 +272,7 @@
 				E8C069A71C6366BF006DBD1D /* Feature.swift in Sources */,
 				E8D5BBFB1C63D38C0074F9B8 /* Regex.swift in Sources */,
 				E8C069781C636629006DBD1D /* ViewController.swift in Sources */,
+				BEBBC3671C679BBA00CDF867 /* StepsCreator.swift in Sources */,
 				E8C069761C636629006DBD1D /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

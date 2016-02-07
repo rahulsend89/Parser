@@ -7,8 +7,8 @@ public enum Step {
     case Then(String)
     case And(String)
 }
-extension Step{
-    func value() -> String{
+extension Step: Equatable{
+    var value:String{
         switch self {
         case .Given(let v1):
             return v1
@@ -205,11 +205,12 @@ public struct Feature {
             }
             
             func commitScenario() {
-                if let scenario = scenario {
-                    scenarios.append(scenario)
-                }
                 if let _ = example{
                     convertScenarioFromExample()
+                }else{
+                    if let scenario = scenario {
+                        scenarios.append(scenario)
+                    }
                 }
                 
                 scenario = nil
@@ -227,23 +228,23 @@ public struct Feature {
             
             func convertScenarioFromExample(){
                 if let _scenario = scenario , let examples = _scenario.examples where examples.count > 0{
-                    for (_,exvalue) in examples.dictionaryArray.enumerate(){
-                    var exscenario = Scenario(name: _scenario.name, steps: _scenario.steps, file: _scenario.file, line: _scenario.line)
-                        for (index,steps) in  exscenario.steps.enumerate(){
-                            let regex = try! Regex(expression: "(?<=<)\(exvalue.0)(?=>)")
-                            let regexReplace = try! Regex(expression: "<\(exvalue.0)>")
-                            if let matches = regex.matches(steps.value()){
-                                var stepsM = steps;
-                                stepsM.setValue(regexReplace.expression.stringByReplacingMatchesInString(steps.value(), options: .WithTransparentBounds, range: NSMakeRange(0, steps.value().characters.count), withTemplate: "Replace with actual Value"))
-                                exscenario.steps[index] = stepsM
-                                print("\(exscenario.steps[index]) : exscenario.steps[index]")
-                                for (_,val) in matches.groups.enumerate(){
-                                    //print("matches : \(val) : \(steps.value()) \(matches.groups)")
+                    for (var exi = 0;exi < examples.count;exi++){
+                        var exscenario = Scenario(name: _scenario.name, steps: _scenario.steps, file: _scenario.file, line: _scenario.line)
+                        for (_,exvalue) in examples.dictionaryArray.enumerate(){
+                            for (var i = 0 ; i < exscenario.steps.count ; i++){
+                                var steps = exscenario.steps[i]
+                                let regex = try! Regex(expression: "(?<=<)\(exvalue.0)(?=>)")
+                                let regexReplace = try! Regex(expression: "<\(exvalue.0)>")
+                                let exValueElement = exvalue.1[exi]
+                                if let _ = regex.matches(steps.value){
+                                    steps.setValue(regexReplace.expression.stringByReplacingMatchesInString(steps.value, options: .WithTransparentBounds, range: NSMakeRange(0, steps.value.characters.count), withTemplate: "\(exValueElement)"))
+                                    exscenario.steps.removeAtIndex(i)
+                                    exscenario.steps.insert(steps, atIndex: i)
                                 }
                             }
                         }
-                        //scenarios.append(exscenario)
-                        print("exscenario : \(exscenario.steps)")
+                        //print("exscenario : \(exscenario.steps)")
+                        scenarios.append(exscenario)
                     }
                 }
             }
@@ -276,10 +277,7 @@ public struct Feature {
                 let examplekey = content.componentsSeparatedByString("|").map({ (str) -> String in
                     return str.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
                 }).filter({ (str) -> Bool in
-                    if !str.isEmpty{
-                        return true
-                    }
-                    return false
+                    return !str.isEmpty
                 })
                 if examplekey.count != 0{
                     if exampleKey.count == 0 {
@@ -336,7 +334,6 @@ public struct Feature {
                     }
                 }
             }
-            
             commitFeature()
         }
         

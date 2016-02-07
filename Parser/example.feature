@@ -13,4 +13,4 @@ Then I should have <value2> items in the array
 Examples:
 |value1|value2|value5|
 |1     |2     |5     |
-|10    |12     |15  |
+|10    |3     |15  |
