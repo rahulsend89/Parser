@@ -20,7 +20,7 @@ public struct StepHandler {
   }
 }
 
-enum StepError : ErrorType, CustomStringConvertible {
+enum StepError: ErrorType, CustomStringConvertible {
   case NoMatch(Step)
   case AmbiguousMatch(Step, [StepHandler])
   case NotTrue(String)
@@ -34,21 +34,6 @@ enum StepError : ErrorType, CustomStringConvertible {
     case .AmbiguousMatch(let handlers):
         let matches = handlers.1.map { "       - `\($0.expression)`" }.joinWithSeparator("\n")
         return "Too many matches found:\n\(matches)"
-    }
-  }
-}
-
-extension Step : CustomStringConvertible {
-  public var description: String {
-    switch self {
-    case .Given(let given):
-      return "Given \(given)"
-    case .When(let when):
-      return "When \(when)"
-    case .Then(let then):
-      return "Then \(then)"
-    case .And(let and):
-      return "And \(and)"
     }
   }
 }
@@ -90,28 +75,28 @@ public class StepCreator  {
         switch step {
         case .Given(let given):
             do {
-                let (handler, match) = try findGiven(step, name: given)
+                let (handler, match) = try findStep(step, name: given)
                 try handler.handler(match)
             } catch {
                 failure = error
             }
         case .When(let when):
             do {
-                let (handler, match) = try findWhen(step, name: when)
+                let (handler, match) = try findStep(step, name: when)
                 try handler.handler(match)
             } catch {
                 failure = error
             }
         case .Then(let then):
             do {
-                let (handler, match) = try findThen(step, name: then)
+                let (handler, match) = try findStep(step, name: then)
                 try handler.handler(match)
             } catch {
                 failure = error
             }
         case .And(let and):
             do {
-                let (handler, match) = try findAnd(step, name: and)
+                let (handler, match) = try findStep(step, name: and)
                 try handler.handler(match)
             } catch {
                 failure = error
@@ -122,51 +107,26 @@ public class StepCreator  {
         return failure == nil
     }
     
-    func findGiven(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
-        let matchedGivens = givens.filter { $0.expression.matches(name) != nil }
-        if matchedGivens.count > 1 {
-            throw StepError.AmbiguousMatch(step, matchedGivens)
-        } else if let given = matchedGivens.first {
-            let match = given.expression.matches(name)!
-            return (given, match)
+    func findStep(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
+        var array: [StepHandler] = []
+        switch step{
+        case .Given( _):
+            array = givens
+        case .When( _):
+            array = whens
+        case .Then( _):
+            array = thens
+        case .And( _):
+            array = ands
         }
         
-        throw StepError.NoMatch(step)
-    }
-    
-    func findWhen(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
-        let matched = whens.filter { $0.expression.matches(name) != nil }
+        let matched = array.filter { $0.expression.matches(name) != nil }
         if matched.count > 1 {
             throw StepError.AmbiguousMatch(step, matched)
         } else if let result = matched.first {
             let match = result.expression.matches(name)!
             return (result, match)
         }
-        
-        throw StepError.NoMatch(step)
-    }
-    
-    func findThen(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
-        let matched = thens.filter { $0.expression.matches(name) != nil }
-        if matched.count > 1 {
-            throw StepError.AmbiguousMatch(step, matched)
-        } else if let result = matched.first {
-            let match = result.expression.matches(name)!
-            return (result, match)
-        }
-        
-        throw StepError.NoMatch(step)
-    }
-    
-    func findAnd(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
-        let matched = ands.filter { $0.expression.matches(name) != nil }
-        if matched.count > 1 {
-            throw StepError.AmbiguousMatch(step, matched)
-        } else if let result = matched.first {
-            let match = result.expression.matches(name)!
-            return (result, match)
-        }
-        
         throw StepError.NoMatch(step)
     }
 }
@@ -196,19 +156,19 @@ public func testWithFile(fileName: String){
     }
 }
 
-public func given(expression: String, closure: StepHandler.Handler) {
+public func Given(expression: String, closure: StepHandler.Handler) {
   StepCreator.sharedInstance.given(expression, closure: closure)
 }
 
-public func when(expression: String, closure: StepHandler.Handler) {
+public func When(expression: String, closure: StepHandler.Handler) {
   StepCreator.sharedInstance.when(expression, closure: closure)
 }
 
-public func then(expression: String, closure: StepHandler.Handler) {
+public func Then(expression: String, closure: StepHandler.Handler) {
   StepCreator.sharedInstance.then(expression, closure: closure)
 }
 
-public func and(expression: String, closure: StepHandler.Handler) {
+public func And(expression: String, closure: StepHandler.Handler) {
   StepCreator.sharedInstance.and(expression, closure: closure)
 }
 public func expect(val: Bool)throws{

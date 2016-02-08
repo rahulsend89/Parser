@@ -7,8 +7,8 @@ public enum Step {
     case Then(String)
     case And(String)
 }
-extension Step: Equatable{
-    var value:String{
+extension Step: Equatable, CustomStringConvertible{
+    var value: String{
         switch self {
         case .Given(let v1):
             return v1
@@ -39,21 +39,33 @@ extension Step: Equatable{
             case .Given(let v2): return v1 == v2
             default: return false
             }
-        case .When(let i1):
+        case .When(let v1):
             switch st {
-            case .When(let i2): return i1 == i2
+            case .When(let v2): return v1 == v2
             default: return false
             }
-        case .Then(let i1):
+        case .Then(let v1):
             switch st {
-            case .Then(let i2): return i1 == i2
+            case .Then(let v2): return v1 == v2
             default: return false
             }
-        case .And(let i1):
+        case .And(let v1):
             switch st {
-            case .And(let i2): return i1 == i2
+            case .And(let v2): return v1 == v2
             default: return false
             }
+        }
+    }
+    public var description: String {
+        switch self {
+        case .Given(let given):
+            return "Given \(given)"
+        case .When(let when):
+            return "When \(when)"
+        case .Then(let then):
+            return "Then \(then)"
+        case .And(let and):
+            return "And \(and)"
         }
     }
 }
@@ -273,7 +285,7 @@ public struct Feature {
                     throw ParseError("Invalid content on line \(line) of \(path)")
                 }
             }
-            func handleExample(content:String) throws{
+            func handleExample(content: String) throws{
                 let examplekey = content.componentsSeparatedByString("|").map({ (str) -> String in
                     return str.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
                 }).filter({ (str) -> Bool in
