@@ -11,8 +11,8 @@ import Foundation
 public class Reporter {
     
     struct Key {
-        static let fileText = "logs.txt"
-        static let fileXml = "out.xml"
+        static let fileText = Config.fileText
+        static let fileXml = Config.fileXml
     }
     
     static let sharedInstance = Reporter()
@@ -20,29 +20,30 @@ public class Reporter {
     var xml = ""
     var log: Bool = true
     let documentDirectoryURL = try! NSFileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: true)
-    func logText (str: String) {
-        self.text.appendContentsOf("\(str)\n")
-        if log{
+    class func logText (str: String) {
+        Reporter.sharedInstance.text.appendContentsOf("\(str)\n")
+        if Reporter.sharedInstance.log{
             print(str)
         }
     }
-    func logXml (str: String) {
-        self.xml.appendContentsOf("\(str)\n")
+    class func logXml (str: String) {
+        Reporter.sharedInstance.xml.appendContentsOf("\(str)\n")
     }
-    func saveLogs(){
-        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent(Key.fileText)
+    
+    class func saveLogs(){
+        let fileDestinationUrl = Reporter.sharedInstance.documentDirectoryURL.URLByAppendingPathComponent(Key.fileText)
         do{
-            try text.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
+            try Reporter.sharedInstance.text.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
             print("fileDestinationUrl : \(fileDestinationUrl)")
         } catch let error as NSError {
             print("error writing to url \(fileDestinationUrl)")
             print(error.localizedDescription)
         }
     }
-    func saveXml(){
-        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent(Key.fileXml)
+    class func saveXml(){
+        let fileDestinationUrl = Reporter.sharedInstance.documentDirectoryURL.URLByAppendingPathComponent(Key.fileXml)
         do{
-            try self.xml.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
+            try Reporter.sharedInstance.xml.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
             print("fileDestinationUrl : \(fileDestinationUrl)")
         } catch let error as NSError {
             print("error writing to url \(fileDestinationUrl)")

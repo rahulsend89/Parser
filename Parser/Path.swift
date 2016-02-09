@@ -10,7 +10,7 @@ import Foundation
 
 public struct Path {
     struct Key {
-        static let defaultDir: String = "features"
+        static let defaultDir: String = Config.defaultDir
     }
     public let fileName: String
     public let extention: String

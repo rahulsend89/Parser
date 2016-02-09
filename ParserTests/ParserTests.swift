@@ -9,23 +9,6 @@
 import XCTest
 @testable import Parser
 
-extension XCTestCase {
-    func XCTAssertThrows<T>(@autoclosure expression: () throws -> T, _ message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
-        do {
-            try expression()
-            XCTFail("No error to catch! - \(message)", file: file, line: line)
-        } catch {
-        }
-    }
-    func XCTAssertNoThrow<T>(@autoclosure expression: () throws -> T, _ message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
-        do {
-            try expression()
-        } catch let error {
-            XCTFail("Caught error: \(error) - \(message)", file: file, line: line)
-        }
-    }
-}
-
 class ParserTests: XCTestCase {
     
     override func setUp() {
@@ -67,7 +50,7 @@ class ParserTests: XCTestCase {
         }
         
         And("^this is undefined statement for test$") { match in
-            try expect(false)
+            try expect(true)
         }
         
         startMyTest()
