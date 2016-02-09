@@ -1,0 +1,10 @@
+{
+    "Suites": {
+        "Suite": [{
+            "type": "example",
+            "Stories": [
+                "example.feature",
+            ]
+        }]
+    }
+}

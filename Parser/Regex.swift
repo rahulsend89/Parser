@@ -36,6 +36,10 @@ struct Regex: CustomStringConvertible {
         return expression.pattern
     }
     
+    func replaceWithString(str: String, replaceStr: String) -> String{
+        return self.expression.stringByReplacingMatchesInString(str, options: .WithTransparentBounds, range: NSMakeRange(0, str.characters.count), withTemplate: "\(replaceStr)")
+    }
+    
     func matches(value: String) -> RegexMatch? {
         let matches = expression.matchesInString(value, options: NSMatchingOptions(), range: NSRange(location: 0, length: value.characters.count))
         if let match = matches.first {

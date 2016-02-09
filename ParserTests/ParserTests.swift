@@ -9,6 +9,23 @@
 import XCTest
 @testable import Parser
 
+extension XCTestCase {
+    func XCTAssertThrows<T>(@autoclosure expression: () throws -> T, _ message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
+        do {
+            try expression()
+            XCTFail("No error to catch! - \(message)", file: file, line: line)
+        } catch {
+        }
+    }
+    func XCTAssertNoThrow<T>(@autoclosure expression: () throws -> T, _ message: String = "", file: String = __FILE__, line: UInt = __LINE__) {
+        do {
+            try expression()
+        } catch let error {
+            XCTFail("Caught error: \(error) - \(message)", file: file, line: line)
+        }
+    }
+}
+
 class ParserTests: XCTestCase {
     
     override func setUp() {
@@ -28,9 +45,9 @@ class ParserTests: XCTestCase {
             array = []
         }
         
-        Given("^I have an array with the (\\w+) (\\d+) though (\\d+)$") { match in
-            let start = match.groups[2]
-            let end = match.groups[3]
+        Given("^I have an array with the numbers (\\d+) though (\\d+)$") { match in
+            let start = match.groups[1]
+            let end = match.groups[2]
             
             array = Array(Int(start)! ..< Int(end)!)
         }
@@ -50,10 +67,10 @@ class ParserTests: XCTestCase {
         }
         
         And("^this is undefined statement for test$") { match in
-            try expect(true)
+            try expect(false)
         }
         
-        testWithFile("example.feature")
+        startMyTest()
     }
     
     func testExample() {
@@ -64,7 +81,7 @@ class ParserTests: XCTestCase {
         let scenarios = features[0].scenarios
         XCTAssert(scenarios.count == 3)
         XCTAssert(scenarios[0].name == "Appending to an array")
-        XCTAssert(scenarios[0].line == 3)
+        XCTAssert(scenarios[0].meta == .Automated)
         XCTAssert(scenarios[0].line == 3)
         XCTAssert(scenarios[0].steps[0] == .Given("I have an empty array"))
         XCTAssert(scenarios[0].steps[1] == .When("I add 1 to the array"))

@@ -1,6 +1,19 @@
 import Foundation
 import UIKit
 
+public enum OutCome: CustomStringConvertible {
+    case unsuccessful
+    case successful
+    public var description: String {
+        switch self {
+        case .successful:
+            return "successful"
+        case .unsuccessful:
+            return "failed"
+        }
+    }
+}
+
 public enum Step {
     case Given(String)
     case When(String)
@@ -73,6 +86,26 @@ public func ==(lhs: Step, rhs: Step) -> Bool {
     return lhs.isEqual(rhs)
 }
 
+public enum Meta{
+    case Automated
+    case Pending
+    case Manual
+    case Unknown
+    
+    init(var value: String){
+        value = value.substringFromIndex(value.startIndex.advancedBy(1))
+        if value == "automated" {
+            self = .Automated
+        } else if value == "pending" {
+            self = .Pending
+        } else if value == "manual" {
+            self = .Manual
+        } else{
+            self = .Unknown
+        }
+    }
+}
+
 public struct Path {
     public let fileName: String
     public let extention: String
@@ -82,7 +115,7 @@ public struct Path {
         let fileNameAr = fileName.componentsSeparatedByString(".")
         self.fileName = fileNameAr[0]
         self.extention = fileNameAr[1]
-        if let path = NSBundle.mainBundle().pathForResource(self.fileName, ofType: self.extention){
+        if let path = NSBundle.mainBundle().pathForResource(self.fileName, ofType: self.extention, inDirectory: "features"){
             let data = try! String(contentsOfFile:path, encoding: NSUTF8StringEncoding)
             self.content = data
         }else{
@@ -93,18 +126,35 @@ public struct Path {
 
 public struct Scenario {
     public let name: String
-    public var steps: [Step]
+    public var steps: [Step]{
+        didSet{
+            self.stepsOut = []
+            for _ in self.steps{
+                self.stepsOut.append(.successful)
+            }
+        }
+    }
+    public var stepsOut: [OutCome]
     public var examples: Example?
+    public var meta: Meta
     
     public let file: Path
     public let line: Int
     
-    init(name: String, steps: [Step], file: Path, line: Int, examples: Example? = nil) {
+    init(name: String, steps: [Step], file: Path, line: Int, examples: Example? = nil, meta: String = "@pending") {
         self.name = name
         self.steps = steps
+        self.stepsOut = []
+        for _ in steps{
+            self.stepsOut.append(.successful)
+        }
         self.file = file
         self.line = line
         self.examples = examples
+        self.meta = Meta(value: meta)
+    }
+    mutating func setMeta(meta: String){
+        self.meta = Meta(value: meta)
     }
     mutating func setExample(example: Example){
         self.examples = example
@@ -142,6 +192,7 @@ enum ParseState {
     case Unknown
     case Feature
     case Scenario
+    case Meta
     case Given
     case When
     case Then
@@ -153,6 +204,8 @@ enum ParseState {
             self = .Feature
         } else if value == "scenario" {
             self = .Scenario
+        } else if value == "meta" {
+            self = .Meta
         } else if value == "given" {
             self = .Given
         } else if value == "when" {
@@ -186,13 +239,31 @@ enum ParseState {
 
 
 
-public struct Feature {
+public struct Feature: CustomStringConvertible {
     public let name: String
+    public let filePath: String
     public let scenarios: [Scenario]
-    
+    public var description: String {
+        var text = "<story path=\"features\\\(filePath)\" title=\"\(name)\">\n"
+        for scenario in scenarios{
+            text.appendContentsOf("<scenario keyword=\"Scenario:\" title=\"\(scenario.name)\">\n")
+            let metaString = "\(scenario.meta)".lowercaseString
+            text.appendContentsOf("<meta>\n<property keyword=\"@\" name=\"\(metaString)\" value=\"\"/>\n</meta>\n")
+            for (index,step) in scenario.steps.enumerate(){
+                let outCome = scenario.stepsOut[index]
+                if outCome == .unsuccessful{
+                    text.appendContentsOf("<step outcome=\"\(outCome)\" keyword=\"FAILED\">\(step.description)<failure>false</failure></step>\n")
+                }else{
+                    text.appendContentsOf("<step outcome=\"\(outCome)\">\(step.description)</step>\n")
+                }
+            }
+            text.appendContentsOf("</scenario>\n")
+        }
+        text.appendContentsOf("</story>")
+        return text
+    }
     public static func parse(paths: [Path]) throws -> [Feature] {
         var features: [Feature] = []
-        
         for path in paths {
             let content: String = path.content!
             var line = 0
@@ -209,7 +280,8 @@ public struct Feature {
                 commitScenario()
                 
                 if let featureName = featureName {
-                    features.append(Feature(name: featureName, scenarios: scenarios))
+                    let feature = Feature(name: featureName, scenarios: scenarios, filePath: "\(path.fileName).\(path.extention)")
+                    features.append(feature)
                 }
                 
                 featureName = nil
@@ -242,6 +314,7 @@ public struct Feature {
                 if let _scenario = scenario , let examples = _scenario.examples where examples.count > 0{
                     for (var exi = 0;exi < examples.count;exi++){
                         var exscenario = Scenario(name: _scenario.name, steps: _scenario.steps, file: _scenario.file, line: _scenario.line)
+                        exscenario.meta = _scenario.meta
                         for (_,exvalue) in examples.dictionaryArray.enumerate(){
                             for (var i = 0 ; i < exscenario.steps.count ; i++){
                                 var steps = exscenario.steps[i]
@@ -249,7 +322,7 @@ public struct Feature {
                                 let regexReplace = try! Regex(expression: "<\(exvalue.0)>")
                                 let exValueElement = exvalue.1[exi]
                                 if let _ = regex.matches(steps.value){
-                                    steps.setValue(regexReplace.expression.stringByReplacingMatchesInString(steps.value, options: .WithTransparentBounds, range: NSMakeRange(0, steps.value.characters.count), withTemplate: "\(exValueElement)"))
+                                    steps.setValue(regexReplace.replaceWithString(steps.value, replaceStr: exValueElement))
                                     exscenario.steps.removeAtIndex(i)
                                     exscenario.steps.insert(steps, atIndex: i)
                                 }
@@ -270,10 +343,15 @@ public struct Feature {
                     if newState == .Feature {
                         commitFeature()
                         featureName = value
+                    }else if newState == .Scenario {
+                        commitScenario()
+                        scenario = Scenario(name: value, steps: [], file: path, line: line)
                     } else if newState == .Scenario {
                         commitScenario()
                         scenario = Scenario(name: value, steps: [], file: path, line: line)
-                    }else if newState == .Example{
+                    } else if newState == .Meta {
+                        scenario?.setMeta(value)
+                    } else if newState == .Example{
                         example = Example(dictionaryArray: Dictionary<String,[String]>(),line: line)
                         commitExample()
                     } else if let step = newState.toStep(value) {
@@ -287,7 +365,7 @@ public struct Feature {
             }
             func handleExample(content: String) throws{
                 let examplekey = content.componentsSeparatedByString("|").map({ (str) -> String in
-                    return str.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+                    return str.trim()
                 }).filter({ (str) -> Bool in
                     return !str.isEmpty
                 })
@@ -315,7 +393,7 @@ public struct Feature {
             for content in content.componentsSeparatedByString("\n") {
                 ++line
                 
-                let contents = content.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+                let contents = content.trim()
                 if contents.isEmpty {
                     continue
                 }
@@ -326,18 +404,18 @@ public struct Feature {
                     let containSt = contents.containsString(":")
                     let tokens = contents.split(":", maxSplit: 1)
                     if containSt && tokens.count == 1{
-                        let key = String(tokens[0]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+                        let key = String(tokens[0]).trim()
                         try handleComponent(key, "")
                     }else{
                         if tokens.count == 2 {
-                            let key = String(tokens[0]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-                            let value = String(tokens[1]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+                            let key = String(tokens[0]).trim()
+                            let value = String(tokens[1]).trim()
                             try handleComponent(key, value)
                         } else {
                             let tokens = contents.split(" ", maxSplit: 1)
                             if tokens.count == 2 {
-                                let key = String(tokens[0]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-                                let value = String(tokens[1]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+                                let key = String(tokens[0]).trim()
+                                let value = String(tokens[1]).trim()
                                 try handleComponent(key, value)
                             } else {
                                 throw ParseError("Invalid content on line \(line) of \(path)")
@@ -352,9 +430,10 @@ public struct Feature {
         return features
     }
     
-    init(name: String, scenarios: [Scenario]) {
+    init(name: String, scenarios: [Scenario], filePath: String) {
         self.name = name
         self.scenarios = scenarios
+        self.filePath = filePath
     }
 }
 
@@ -363,5 +442,8 @@ extension String {
     func split(character: Character, maxSplit: Int) -> [String] {
         return characters.split(maxSplit) { $0 == character }
             .map(String.init)
+    }
+    func trim() -> String{
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
     }
 }

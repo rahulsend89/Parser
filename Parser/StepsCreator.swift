@@ -7,7 +7,6 @@
 //
 
 import Foundation
-
 public struct StepHandler {
   public typealias Handler = (RegexMatch) throws -> ()
 
@@ -37,6 +36,7 @@ enum StepError: ErrorType, CustomStringConvertible {
     }
   }
 }
+
 
 public class StepCreator  {
     static let sharedInstance = StepCreator()
@@ -130,30 +130,63 @@ public class StepCreator  {
         throw StepError.NoMatch(step)
     }
 }
-public func testWithFile(fileName: String){
+public func startMyTest(){
+    func getDataFromFile(myurl: String)->NSData{
+        let path = NSBundle.mainBundle().pathForResource(myurl, ofType: "json")!
+        let data = try! NSData(contentsOfFile:path,
+            options: NSDataReadingOptions.DataReadingUncached)
+        return data
+    }
+    let jsonParser = JsonParser()
+    let suites: Suites? = jsonParser.parseJson(jsonParser.parseToJSON(getDataFromFile("suites")), inToClass: Suites.self, keypath: "") as? Suites
+    guard let _suites = suites else{
+        return
+    }
+    if let suite = _suites.suite where suite.count > 0{
+        for (_, _suite) in suite.enumerate(){
+            if let stories = _suite.stories{
+                for allStories in stories{
+                    let filePath = Path(allStories)
+                    testWithFile(filePath)
+                }
+            }
+        }
+    }
+}
+public func testWithFile(filePath: Path){
+    
+    //Reporter.sharedInstance.log = false
+    
     var scenarios = 0
     var failures = 0
-    let filePath = Path(fileName)
-    let features = try! Feature.parse([filePath])
-    for feature in features {
-        print("Feature : \(feature.name)")
-        for scenario in feature.scenarios {
-            print("Fcenario : \(scenario.name)")
+    var features = try! Feature.parse([filePath])
+    var scenariosVal = features[0].scenarios
+    Reporter.sharedInstance.logText("Feature : \(features[0].name)")
+    for (var i = 0; i < scenariosVal.count; i++) {
+        var scenario = scenariosVal[i]
+        if scenario.meta == .Automated{
+            Reporter.sharedInstance.logText("Scenario : \(scenario.name)")
             ++scenarios
-            for step in scenario.steps {
-                print("Step : \(step)")
+            for (index, step) in scenario.steps.enumerate() {
+                Reporter.sharedInstance.logText("Step : \(step)")
                 if !StepCreator.sharedInstance.runStep(step) {
-                    print("Step Fails : \(step)")
+                    
+                    scenario.stepsOut.removeAtIndex(index)
+                    scenario.stepsOut.insert(.unsuccessful, atIndex: index)
+                    scenariosVal.removeAtIndex(i)
+                    scenariosVal.insert(scenario, atIndex: i)
+                    
+                    Reporter.sharedInstance.logText("Step Fails : \(step)")
                     ++failures
                     break
                 }
             }
         }
     }
-    print("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
-    if failures > 0 {
-        //exit(1)
-    }
+    let outfeature = Feature(name: features[0].name, scenarios: scenariosVal, filePath: features[0].filePath)
+    Reporter.sharedInstance.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
+    Reporter.sharedInstance.saveLogs()
+    Reporter.sharedInstance.saveLogs(outfeature.description)
 }
 
 public func Given(expression: String, closure: StepHandler.Handler) {
@@ -173,7 +206,6 @@ public func And(expression: String, closure: StepHandler.Handler) {
 }
 public func expect(val: Bool)throws{
     if !val{
-        throw StepError.NotTrue("")
+        throw StepError.NotTrue("\(val)")
     }
 }
-
