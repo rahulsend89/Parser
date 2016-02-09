@@ -75,7 +75,7 @@ class ParserTests: XCTestCase {
     
     func testExample() {
         let filePath = Path("example.feature")
-        let features = try! Feature.parse([filePath])
+        let features = try! FeatureFileParser().parse([filePath])
         XCTAssert(features.count == 1)
         XCTAssert(features[0].name == "An array")
         let scenarios = features[0].scenarios

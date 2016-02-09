@@ -9,9 +9,15 @@
 import Foundation
 
 public class Reporter {
+    
+    struct Key {
+        static let fileText = "logs.txt"
+        static let fileXml = "out.xml"
+    }
+    
     static let sharedInstance = Reporter()
-    let file = "logs.txt"
     var text = ""
+    var xml = ""
     var log: Bool = true
     let documentDirectoryURL = try! NSFileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: true)
     func logText (str: String) {
@@ -20,8 +26,11 @@ public class Reporter {
             print(str)
         }
     }
+    func logXml (str: String) {
+        self.xml.appendContentsOf("\(str)\n")
+    }
     func saveLogs(){
-        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent(file)
+        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent(Key.fileText)
         do{
             try text.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
             print("fileDestinationUrl : \(fileDestinationUrl)")
@@ -30,10 +39,10 @@ public class Reporter {
             print(error.localizedDescription)
         }
     }
-    func saveLogs(val: String){
-        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent("out.xml")
+    func saveXml(){
+        let fileDestinationUrl = documentDirectoryURL.URLByAppendingPathComponent(Key.fileXml)
         do{
-            try val.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
+            try self.xml.writeToURL(fileDestinationUrl, atomically: true, encoding: NSUTF8StringEncoding)
             print("fileDestinationUrl : \(fileDestinationUrl)")
         } catch let error as NSError {
             print("error writing to url \(fileDestinationUrl)")

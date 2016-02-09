@@ -145,48 +145,55 @@ public func startMyTest(){
     if let suite = _suites.suite where suite.count > 0{
         for (_, _suite) in suite.enumerate(){
             if let stories = _suite.stories{
+                var filePath: [Path] = []
                 for allStories in stories{
-                    let filePath = Path(allStories)
-                    testWithFile(filePath)
+                    filePath.append(Path(allStories))
                 }
+                testWithFile(filePath)
             }
         }
     }
 }
-public func testWithFile(filePath: Path){
+public func testWithFile(filePath: [Path]){
     
     //Reporter.sharedInstance.log = false
     
     var scenarios = 0
     var failures = 0
-    var features = try! Feature.parse([filePath])
-    var scenariosVal = features[0].scenarios
-    Reporter.sharedInstance.logText("Feature : \(features[0].name)")
-    for (var i = 0; i < scenariosVal.count; i++) {
-        var scenario = scenariosVal[i]
-        if scenario.meta == .Automated{
-            Reporter.sharedInstance.logText("Scenario : \(scenario.name)")
-            ++scenarios
-            for (index, step) in scenario.steps.enumerate() {
-                Reporter.sharedInstance.logText("Step : \(step)")
-                if !StepCreator.sharedInstance.runStep(step) {
-                    
-                    scenario.stepsOut.removeAtIndex(index)
-                    scenario.stepsOut.insert(.unsuccessful, atIndex: index)
-                    scenariosVal.removeAtIndex(i)
-                    scenariosVal.insert(scenario, atIndex: i)
-                    
-                    Reporter.sharedInstance.logText("Step Fails : \(step)")
-                    ++failures
-                    break
+    
+    let features = try! FeatureFileParser.sharedInstance.parse(filePath)
+    for feature in features{
+        scenarios = 0
+        failures = 0
+        var scenariosVal = feature.scenarios
+        Reporter.sharedInstance.logText("Feature : \(feature.name)")
+        for (var i = 0; i < scenariosVal.count; i++) {
+            var scenario = scenariosVal[i]
+            if scenario.meta == .Automated{
+                Reporter.sharedInstance.logText("Scenario : \(scenario.name)")
+                ++scenarios
+                for (index, step) in scenario.steps.enumerate() {
+                    Reporter.sharedInstance.logText("Step : \(step)")
+                    if !StepCreator.sharedInstance.runStep(step) {
+                        
+                        scenario.stepsOut.removeAtIndex(index)
+                        scenario.stepsOut.insert(.unsuccessful, atIndex: index)
+                        scenariosVal.removeAtIndex(i)
+                        scenariosVal.insert(scenario, atIndex: i)
+                        
+                        Reporter.sharedInstance.logText("Step Fails : \(step)")
+                        ++failures
+                        break
+                    }
                 }
             }
         }
+        let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath)
+        Reporter.sharedInstance.logXml(outFeatureFile.description)
+        Reporter.sharedInstance.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
     }
-    let outfeature = Feature(name: features[0].name, scenarios: scenariosVal, filePath: features[0].filePath)
-    Reporter.sharedInstance.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
     Reporter.sharedInstance.saveLogs()
-    Reporter.sharedInstance.saveLogs(outfeature.description)
+    Reporter.sharedInstance.saveXml()
 }
 
 public func Given(expression: String, closure: StepHandler.Handler) {
