@@ -9,8 +9,8 @@
 import Foundation
 
 struct Config {
-    static let fileText = "logs.txt"
-    static let fileXml = "logs.xml"
-    static let defaultDir: String = "features"
     static let suitesFile = "suites.json"
+    static let textFile   = "logs.txt"
+    static let xmlFile    = "logs.xml"
+    static let defaultDir = "features"
 }

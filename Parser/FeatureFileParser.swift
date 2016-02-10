@@ -84,6 +84,7 @@ public class FeatureFileParser {
     
     private var featureName: String?
     private var scenarios: [Scenario] = []
+    private var actualScenarios: [Scenario] = []
     private var exampleKey: [String] = []
     private var exampleValueArray: [[String]] = []
     
@@ -91,7 +92,8 @@ public class FeatureFileParser {
         commitScenario()
         
         if let featureName = featureName {
-            let feature = Feature(name: featureName, scenarios: scenarios, filePath: "\(filePath.fileName).\(filePath.extention)")
+            var feature = Feature(name: featureName, scenarios: scenarios, filePath: "\(filePath.fileName).\(filePath.extention)")
+            feature.actualScenarios = actualScenarios
             features.append(feature)
         }
         
@@ -102,8 +104,14 @@ public class FeatureFileParser {
     func commitScenario() {
         if let _ = example{
             convertScenarioFromExample()
+            if var scenario = scenario {
+                scenario.examples = example
+                scenario.examples?.steps = scenario.steps
+                actualScenarios.append(scenario)
+            }
         }else{
             if let scenario = scenario {
+                actualScenarios.append(scenario)
                 scenarios.append(scenario)
             }
         }
@@ -125,15 +133,28 @@ public class FeatureFileParser {
         if let _scenario = scenario , let examples = _scenario.examples where examples.count > 0{
             for (var exi = 0;exi < examples.count;exi++){
                 var exscenario = Scenario(name: _scenario.name, steps: _scenario.steps, file: _scenario.file, line: _scenario.line)
+                exscenario.examples = examples
+                exscenario.examples?.steps = _scenario.steps
                 exscenario.meta = _scenario.meta
                 for (_,exvalue) in examples.dictionaryArray.enumerate(){
                     for (var i = 0 ; i < exscenario.steps.count ; i++){
                         var steps = exscenario.steps[i]
+                        var stepExample = exscenario.examples!.steps[i]
+                        //actual exscenario
                         let regex = try! Regex(expression: "(?<=<)\(exvalue.0)(?=>)")
                         let regexReplace = try! Regex(expression: "<\(exvalue.0)>")
+                        
+                        //example exscenario
+                        let exValueElementExample = "<parameter>\(exvalue.1[exi])</parameter>"
+                        
                         let exValueElement = exvalue.1[exi]
                         if let _ = regex.matches(steps.value){
                             steps.setValue(regexReplace.replaceWithString(steps.value, replaceStr: exValueElement))
+                            stepExample.setValue(regexReplace.replaceWithString(stepExample.value, replaceStr: exValueElementExample))
+                            
+                            exscenario.examples?.steps.removeAtIndex(i)
+                            exscenario.examples?.steps.insert(stepExample, atIndex: i)
+                            exscenario.examples?.currentStep = exi
                             exscenario.steps.removeAtIndex(i)
                             exscenario.steps.insert(steps, atIndex: i)
                         }
@@ -173,9 +194,10 @@ public class FeatureFileParser {
             throw ParseError("Invalid content on line \(line) of \(filePath)")
         }
     }
+    
     func handleExample(content: String) throws{
         let examplekey = content.componentsSeparatedByString("|").map({ (str) -> String in
-            return str.trim()
+            return str.trim
         }).filter({ (str) -> Bool in
             return !str.isEmpty
         })
@@ -210,7 +232,7 @@ public class FeatureFileParser {
             for content in self.content.componentsSeparatedByString("\n") {
                 ++line
                 
-                let contents = content.trim()
+                let contents = content.trim
                 if contents.isEmpty {
                     continue
                 }
@@ -221,18 +243,18 @@ public class FeatureFileParser {
                     let containSt = contents.containsString(":")
                     let tokens = contents.split(":", maxSplit: 1)
                     if containSt && tokens.count == 1{
-                        let key = String(tokens[0]).trim()
+                        let key = String(tokens[0]).trim
                         try handleComponent(key, "")
                     }else{
                         if tokens.count == 2 {
-                            let key = String(tokens[0]).trim()
-                            let value = String(tokens[1]).trim()
+                            let key = String(tokens[0]).trim
+                            let value = String(tokens[1]).trim
                             try handleComponent(key, value)
                         } else {
                             let tokens = contents.split(" ", maxSplit: 1)
                             if tokens.count == 2 {
-                                let key = String(tokens[0]).trim()
-                                let value = String(tokens[1]).trim()
+                                let key = String(tokens[0]).trim
+                                let value = String(tokens[1]).trim
                                 try handleComponent(key, value)
                             } else {
                                 throw ParseError("Invalid content on line \(line) of \(path)")
@@ -254,7 +276,7 @@ extension String {
         return characters.split(maxSplit) { $0 == character }
             .map(String.init)
     }
-    func trim() -> String{
+    var trim: String{
         return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
     }
 }

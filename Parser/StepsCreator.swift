@@ -171,7 +171,7 @@ public class StepCreator {
                     }
                 }
             }
-            let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath)
+            let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
             Reporter.logXml(outFeatureFile.description)
             Reporter.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
         }

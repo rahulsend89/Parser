@@ -12,10 +12,14 @@ public struct Example {
     public var dictionaryArray: Dictionary<String,[String]>
     public var line: Int
     public var count: Int
-    init(dictionaryArray: Dictionary<String,[String]>,line: Int) {
+    public var currentStep: Int
+    public var steps: [Step]
+    init(dictionaryArray: Dictionary<String,[String]>,line: Int,steps: [Step] = [], currentStep: Int = 0) {
         self.dictionaryArray = dictionaryArray
         self.count = 0
         self.line = line
+        self.steps = steps
+        self.currentStep = currentStep
     }
     mutating func setDictionaryArray(dictionaryArray: Dictionary<String,[String]>){
         self.dictionaryArray = dictionaryArray

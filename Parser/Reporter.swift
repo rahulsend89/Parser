@@ -11,8 +11,8 @@ import Foundation
 public class Reporter {
     
     struct Key {
-        static let fileText = Config.fileText
-        static let fileXml = Config.fileXml
+        static let fileText = Config.textFile
+        static let fileXml = Config.xmlFile
     }
     
     static let sharedInstance = Reporter()
