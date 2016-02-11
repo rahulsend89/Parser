@@ -7,9 +7,9 @@
 //
 
 import Foundation
-
+public typealias completionBlock = () -> ()
 public struct StepHandler {
-  public typealias Handler = (RegexMatch) throws -> ()
+    public typealias Handler = (RegexMatch, completionBlock ) throws -> ()
 
   let expression: Regex
   let handler: Handler
@@ -46,11 +46,22 @@ public class StepCreator {
         static let suitesExtention = Config.suitesFile.componentsSeparatedByString(".")[1]
     }
     
-    static let sharedInstance = StepCreator()
+    let operationQueue: NSOperationQueue = NSOperationQueue()
+    
+    private func operationInit(){
+        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.name = "BDD-queue"
+    }
+    
+    static let sharedInstance: StepCreator = StepCreator()
     var givens: [StepHandler] = []
     var whens: [StepHandler] = []
     var thens: [StepHandler] = []
     var ands: [StepHandler] = []
+    
+    init(){
+        operationInit()
+    }
     
     public func given(expression: String, closure: StepHandler.Handler) {
         let regex = try! Regex(expression: expression)
@@ -76,39 +87,56 @@ public class StepCreator {
         ands.append(handler)
     }
     
-    func runStep(step: Step) -> Bool {
+    func runStep(step: Step, completion: completionBlock) -> Bool {
         var failure: ErrorType? = nil
-        
+        var execVal: (StepHandler, RegexMatch)? = nil
         switch step {
         case .Given(let given):
             do {
-                let (handler, match) = try findStep(step, name: given)
-                try handler.handler(match)
+                execVal = try findStep(step, name: given)
             } catch {
                 failure = error
             }
         case .When(let when):
             do {
-                let (handler, match) = try findStep(step, name: when)
-                try handler.handler(match)
+                execVal = try findStep(step, name: when)
             } catch {
                 failure = error
             }
         case .Then(let then):
             do {
-                let (handler, match) = try findStep(step, name: then)
-                try handler.handler(match)
+                execVal = try findStep(step, name: then)
             } catch {
                 failure = error
             }
         case .And(let and):
             do {
-                let (handler, match) = try findStep(step, name: and)
-                try handler.handler(match)
+                execVal = try findStep(step, name: and)
             } catch {
                 failure = error
             }
         }
+        
+        if let execVal = execVal {
+            let (handler,match) = execVal
+            var operation: ConcurrentOperation?
+            var currentOperationCompletion:()->()? = { (operation!.completion)($0) }
+            operation = ConcurrentOperation(block: { () -> Void in
+                do{
+                    try handler.handler(match){
+                        currentOperationCompletion()
+                        completion()
+                    }
+                } catch{
+                    failure = error
+                }
+            })
+            currentOperationCompletion = { (operation!.completion)($0) }
+            self.operationQueue.addOperation(operation!)
+        }else{
+            completion()
+        }
+
         
         //print("step : \(step) failure: \(failure)")
         return failure == nil
@@ -137,50 +165,63 @@ public class StepCreator {
         throw StepError.NoMatch(step)
     }
     
-    public func testWithFile(filePath: [Path]){
+    public func testWithFile(filePath: [Path], completion: completionBlock){
         
         //Reporter.sharedInstance.log = false
         
         var scenarios = 0
         var failures = 0
-        
+        var allSteps = 0
         let features = try! FeatureFileParser.sharedInstance.parse(filePath)
         for feature in features{
             scenarios = 0
             failures = 0
+            allSteps = 0
             var scenariosVal = feature.scenarios
+            
+            let completionSub: completionBlock = {
+                let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
+                Reporter.logXml(outFeatureFile.description)
+                Reporter.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
+                Reporter.saveLogs()
+                Reporter.saveXml()
+                completion()
+            }
+            
             Reporter.logText("Feature : \(feature.name)")
             for (var i = 0; i < scenariosVal.count; i++) {
                 var scenario = scenariosVal[i]
                 if scenario.meta == .Automated{
                     Reporter.logText("Scenario : \(scenario.name)")
                     ++scenarios
+                    allSteps += scenario.steps.count
                     for (index, step) in scenario.steps.enumerate() {
                         Reporter.logText("Step : \(step)")
-                        if !StepCreator.sharedInstance.runStep(step) {
-                            
-                            scenario.stepsOut.removeAtIndex(index)
-                            scenario.stepsOut.insert(.unsuccessful, atIndex: index)
-                            scenariosVal.removeAtIndex(i)
-                            scenariosVal.insert(scenario, atIndex: i)
-                            
-                            Reporter.logText("Step Fails : \(step)")
-                            ++failures
-                            break
+                        var outVal: Bool = false
+                        outVal = StepCreator.sharedInstance.runStep(step){
+                            allSteps--
+                            print("allSteps : \(allSteps)")
+                            if !outVal{
+                                scenario.stepsOut.removeAtIndex(index)
+                                scenario.stepsOut.insert(.unsuccessful, atIndex: index)
+                                scenariosVal.removeAtIndex(i)
+                                scenariosVal.insert(scenario, atIndex: i)
+                                
+                                Reporter.logText("Step Fails : \(step)")
+                                ++failures
+                            }
+                            if allSteps == 0{
+                                completionSub()
+                            }
                         }
                     }
                 }
             }
-            let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
-            Reporter.logXml(outFeatureFile.description)
-            Reporter.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
+            
         }
-        Reporter.saveLogs()
-        Reporter.saveXml()
     }
 }
-
-public func startMyTest(){
+public func startMyTest(completion: completionBlock? = nil){
     func getDataFromFile(myurl: String)->NSData{
         let path = NSBundle.mainBundle().pathForResource(myurl, ofType: StepCreator.Key.suitesExtention)!
         let data = try! NSData(contentsOfFile:path,
@@ -199,7 +240,11 @@ public func startMyTest(){
                 for allStories in stories{
                     filePath.append(Path(allStories))
                 }
-                StepCreator.sharedInstance.testWithFile(filePath)
+                StepCreator.sharedInstance.testWithFile(filePath){
+                    if let completion = completion{
+                        completion()
+                    }
+                }
             }
         }
     }

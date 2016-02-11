@@ -21,39 +21,57 @@ class ParserTests: XCTestCase {
         super.tearDown()
     }
     
+    func execute_after(delayInSeconds: NSTimeInterval, block: dispatch_block_t) {
+        let popTime = dispatch_time(DISPATCH_TIME_NOW, Int64( delayInSeconds * Double(NSEC_PER_SEC)))
+        dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block);
+    }
+    
     func testTunner(){
         var array: [Int] = []
         
-        Given("^I have an empty array$") { match in
+        Given("^I have an empty array$") { match, completion in
             array = []
+            completion()
         }
         
-        Given("^I have an array with the numbers (\\d+) though (\\d+)$") { match in
-            let start = match.groups[1]
-            let end = match.groups[2]
+        Given("^I have an array with the (\\w+) (\\d+) though (\\d+)$") { match, completion in
+            let start = match.groups[2]
+            let end = match.groups[3]
             
             array = Array(Int(start)! ..< Int(end)!)
+            
+            self.execute_after(2){
+                completion()
+            }
         }
         
-        When("^I add (\\d+) to the array$") { match in
+        When("^I add (\\d+) to the array$") { match, completion in
             let number = Int(match.groups[1])!
             array.append(number)
+            completion()
         }
         
-        When("^I filter the array for even numbers$") { match in
+        When("^I filter the array for even numbers$") { match, completion in
             array = array.filter { $0 % 2 == 0 }
+            completion()
         }
         
-        Then("^I should have (\\d+) items? in the array$") { match in
+        Then("^I should have (\\d+) items? in the array$") { match, completion in
             let count = Int(match.groups[1])!
             try expect(array.count == count)
+            completion()
         }
         
-        And("^this is undefined statement for test$") { match in
+        And("^this is undefined statement for test$") { match, completion in
             try expect(true)
+            completion()
         }
         
-        startMyTest()
+        let appExpectation = expectationWithDescription("LoginTest")
+        startMyTest(){
+            appExpectation.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(40, handler: nil)
     }
     
     func testExample() {
