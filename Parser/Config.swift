@@ -10,6 +10,7 @@ import Foundation
 
 struct Config {
     static let suitesFile = "suites.json"
+    static let runFeature = "example"
     static let textFile   = "logs.txt"
     static let xmlFile    = "logs.xml"
     static let defaultDir = "features"

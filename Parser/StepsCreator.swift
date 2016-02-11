@@ -194,7 +194,7 @@ public func startMyTest(){
     }
     if let suite = _suites.suite where suite.count > 0{
         for (_, _suite) in suite.enumerate(){
-            if let stories = _suite.stories{
+            if let stories = _suite.stories, let type = _suite.type where type == Config.runFeature{
                 var filePath: [Path] = []
                 for allStories in stories{
                     filePath.append(Path(allStories))
