@@ -14,6 +14,7 @@
 		E81480741C69D7D500C8B504 /* Suites.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81480731C69D7D500C8B504 /* Suites.swift */; };
 		E81868B41C6A19E0001341A8 /* Reporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81868B31C6A19E0001341A8 /* Reporter.swift */; };
 		E82A17C01C6CC46D00C140CD /* ConcurrentOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82A17BF1C6CC46D00C140CD /* ConcurrentOperation.swift */; };
+		E82C03921C6DDD5900327081 /* BDDTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82C03861C6DDCCB00327081 /* BDDTest.swift */; };
 		E87F131B1C6A25A800EC0CED /* Step.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87F131A1C6A25A800EC0CED /* Step.swift */; };
 		E87F131E1C6A25C800EC0CED /* OutCome.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87F131D1C6A25C800EC0CED /* OutCome.swift */; };
 		E87F13211C6A25D900EC0CED /* Meta.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87F13201C6A25D900EC0CED /* Meta.swift */; };
@@ -30,6 +31,7 @@
 		E8C0698B1C636629006DBD1D /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C0698A1C636629006DBD1D /* ParserTests.swift */; };
 		E8C069961C636629006DBD1D /* ParserUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C069951C636629006DBD1D /* ParserUITests.swift */; };
 		E8C069A71C6366BF006DBD1D /* FeatureFileParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C069A61C6366BF006DBD1D /* FeatureFileParser.swift */; };
+		E8CF3A681C6E396B007E3F72 /* ParserBDD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CF3A671C6E396B007E3F72 /* ParserBDD.swift */; };
 		E8D5BBFB1C63D38C0074F9B8 /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8D5BBFA1C63D38C0074F9B8 /* Regex.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +60,7 @@
 		E81480731C69D7D500C8B504 /* Suites.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Suites.swift; sourceTree = "<group>"; };
 		E81868B31C6A19E0001341A8 /* Reporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reporter.swift; sourceTree = "<group>"; };
 		E82A17BF1C6CC46D00C140CD /* ConcurrentOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrentOperation.swift; sourceTree = "<group>"; };
+		E82C03861C6DDCCB00327081 /* BDDTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BDDTest.swift; path = ParserTests/BDDTest.swift; sourceTree = SOURCE_ROOT; };
 		E87F131A1C6A25A800EC0CED /* Step.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Step.swift; sourceTree = "<group>"; };
 		E87F131D1C6A25C800EC0CED /* OutCome.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutCome.swift; sourceTree = "<group>"; };
 		E87F13201C6A25D900EC0CED /* Meta.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Meta.swift; sourceTree = "<group>"; };
@@ -80,6 +83,7 @@
 		E8C069951C636629006DBD1D /* ParserUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserUITests.swift; sourceTree = "<group>"; };
 		E8C069971C636629006DBD1D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E8C069A61C6366BF006DBD1D /* FeatureFileParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeatureFileParser.swift; sourceTree = "<group>"; };
+		E8CF3A671C6E396B007E3F72 /* ParserBDD.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserBDD.swift; sourceTree = "<group>"; };
 		E8D5BBFA1C63D38C0074F9B8 /* Regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Regex.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -185,6 +189,8 @@
 		E8C069891C636629006DBD1D /* ParserTests */ = {
 			isa = PBXGroup;
 			children = (
+				E82C03861C6DDCCB00327081 /* BDDTest.swift */,
+				E8CF3A671C6E396B007E3F72 /* ParserBDD.swift */,
 				E8C0698A1C636629006DBD1D /* ParserTests.swift */,
 				E8C0698C1C636629006DBD1D /* Info.plist */,
 			);
@@ -357,6 +363,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8CF3A681C6E396B007E3F72 /* ParserBDD.swift in Sources */,
+				E82C03921C6DDD5900327081 /* BDDTest.swift in Sources */,
 				E8C0698B1C636629006DBD1D /* ParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

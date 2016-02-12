@@ -117,4 +117,55 @@ extension String{
         }
         return newStr
     }
+    
+    var camelCaseify: String {
+        get {
+            let separators = NSCharacterSet(charactersInString: " -")
+            if self.rangeOfCharacterFromSet(separators) == nil {
+                return self.uppercaseFirstLetterString
+            }
+            return self.lowercaseString.componentsSeparatedByCharactersInSet(separators).filter {
+                // Empty sections aren't interesting
+                $0.characters.count > 0
+                }.map {
+                    // Uppercase each word
+                    $0.uppercaseFirstLetterString
+                }.joinWithSeparator("")
+        }
+    }
+    
+    var uppercaseFirstLetterString: String {
+        get {
+            let s = self as NSString
+            guard s.length>0 else {
+                return self
+            }
+            return s.substringToIndex(1).uppercaseString.stringByAppendingString(s.substringFromIndex(1))
+        }
+    }
+    
+    var humanReadableString: String {
+        get {
+            // This is probably easier in NSStringland
+            let s = self as NSString
+            
+            // The output string can start with the first letter
+            var o = s.substringToIndex(1)
+            
+            // For each other letter, if it's the same as it's uppercase counterpart, insert a space before it
+            for (var i = 1; i < s.length; ++i) {
+                let l = s.substringWithRange(NSMakeRange(i, 1))
+                let u = l.uppercaseString
+                
+                if (u == l) {
+                    o += " "
+                }
+                
+                o += l
+            }
+            
+            return o
+        }
+    }
+
 }

@@ -28,6 +28,13 @@ extension Step: Equatable, CustomStringConvertible{
             return v1
         }
     }
+    var selectorString: String {
+        get { return "test\(self.value.camelCaseify)" }
+    }
+    
+    var selectorCString: UnsafeMutablePointer<Int8> {
+        get { return strdup(self.selectorString) }
+    }
     mutating func setValue(str: String){
         switch self {
         case .Given( _):

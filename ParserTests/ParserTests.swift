@@ -31,7 +31,9 @@ class ParserTests: XCTestCase {
         
         Given("^I have an empty array$") { match, completion in
             array = []
+            XCTAssert(array.count == 0)
             completion()
+            
         }
         
         Given("^I have an array with the (\\w+) (\\d+) though (\\d+)$") { match, completion in
@@ -39,10 +41,8 @@ class ParserTests: XCTestCase {
             let end = match.groups[3]
             
             array = Array(Int(start)! ..< Int(end)!)
-            
-            self.execute_after(2){
-                completion()
-            }
+            XCTAssert(array.count > 0)
+            completion()
         }
         
         When("^I add (\\d+) to the array$") { match, completion in
@@ -58,20 +58,20 @@ class ParserTests: XCTestCase {
         
         Then("^I should have (\\d+) items? in the array$") { match, completion in
             let count = Int(match.groups[1])!
-            try expect(array.count == count)
+            XCTAssert(array.count == count)
             completion()
         }
         
         And("^this is undefined statement for test$") { match, completion in
-            try expect(true)
+            XCTAssert(false)
             completion()
         }
         
-        let appExpectation = expectationWithDescription("LoginTest")
-        startMyTest(){
-            appExpectation.fulfill()
-        }
-        self.waitForExpectationsWithTimeout(40, handler: nil)
+//        let appExpectation = expectationWithDescription("LoginTest")
+//        startMyTest(){
+//            appExpectation.fulfill()
+//        }
+//        self.waitForExpectationsWithTimeout(40, handler: nil)
     }
     
     func testExample() {

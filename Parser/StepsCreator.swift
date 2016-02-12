@@ -116,29 +116,37 @@ public class StepCreator {
                 failure = error
             }
         }
-        
         if let execVal = execVal {
             let (handler,match) = execVal
-            var operation: ConcurrentOperation?
-            var currentOperationCompletion:()->()? = { (operation!.completion)($0) }
-            operation = ConcurrentOperation(block: { () -> Void in
-                do{
-                    try handler.handler(match){
-                        currentOperationCompletion()
-                        completion()
-                    }
-                } catch{
-                    failure = error
-                }
-            })
-            currentOperationCompletion = { (operation!.completion)($0) }
-            self.operationQueue.addOperation(operation!)
-        }else{
-            completion()
+            do{
+                try handler.handler(match){completion()}
+            }catch{
+                failure = error
+            }
         }
+        
+//        if let execVal = execVal {
+//            let (handler,match) = execVal
+//            var operation: ConcurrentOperation?
+//            var currentOperationCompletion:()->()? = { (operation!.completion)($0) }
+//            operation = ConcurrentOperation(block: { () -> Void in
+//                do{
+//                    try handler.handler(match){
+//                        currentOperationCompletion()
+//                        completion()
+//                    }
+//                } catch{
+//                    failure = error
+//                }
+//            })
+//            currentOperationCompletion = { (operation!.completion)($0) }
+//            self.operationQueue.addOperation(operation!)
+//        }else{
+//            completion()
+//        }
 
         
-        //print("step : \(step) failure: \(failure)")
+        print("step : \(step) failure: \(failure)")
         return failure == nil
     }
     
@@ -163,6 +171,11 @@ public class StepCreator {
             return (result, match)
         }
         throw StepError.NoMatch(step)
+    }
+    
+    public func getMyFeatures(filePath: [Path]) -> [Feature]{
+        let features = try! FeatureFileParser.sharedInstance.parse(filePath)
+        return features
     }
     
     public func testWithFile(filePath: [Path], completion: completionBlock){
@@ -248,6 +261,32 @@ public func startMyTest(completion: completionBlock? = nil){
             }
         }
     }
+}
+
+public func getMyFeatures() -> [Feature]?{
+    func getDataFromFile(myurl: String)->NSData{
+        let path = NSBundle.mainBundle().pathForResource(myurl, ofType: StepCreator.Key.suitesExtention)!
+        let data = try! NSData(contentsOfFile:path,
+            options: NSDataReadingOptions.DataReadingUncached)
+        return data
+    }
+    let jsonParser = JsonParser()
+    let suites: Suites? = jsonParser.parseJson(jsonParser.parseToJSON(getDataFromFile(StepCreator.Key.suitesFile)), inToClass: Suites.self, keypath: "") as? Suites
+    guard let _suites = suites else{
+        return nil
+    }
+    if let suite = _suites.suite where suite.count > 0{
+        for (_, _suite) in suite.enumerate(){
+            if let stories = _suite.stories, let type = _suite.type where type == Config.runFeature{
+                var filePath: [Path] = []
+                for allStories in stories{
+                    filePath.append(Path(allStories))
+                }
+                return StepCreator.sharedInstance.getMyFeatures(filePath)
+            }
+        }
+    }
+    return nil
 }
 
 public func Given(expression: String, closure: StepHandler.Handler) {

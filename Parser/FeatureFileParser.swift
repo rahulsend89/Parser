@@ -160,6 +160,7 @@ public class FeatureFileParser {
                         }
                     }
                 }
+                exscenario.name.appendContentsOf("example\(exi)")
                 scenarios.append(exscenario)
             }
         }

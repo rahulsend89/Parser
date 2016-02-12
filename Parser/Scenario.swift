@@ -9,7 +9,7 @@
 import Foundation
 
 public struct Scenario {
-    public let name: String
+    public var name: String
     public var steps: [Step]{
         didSet{
             self.stepsOut = []
@@ -42,5 +42,13 @@ public struct Scenario {
     }
     mutating func setExample(example: Example){
         self.examples = example
+    }
+    
+    var selectorString: String {
+        get { return "test\(self.name.camelCaseify)" }
+    }
+    
+    var selectorCString: UnsafeMutablePointer<Int8> {
+        get { return strdup(self.selectorString) }
     }
 }

@@ -37,6 +37,11 @@
                BlueprintName = "ParserTests"
                ReferencedContainer = "container:Parser.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "ParserTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
          <TestableReference
             skipped = "YES">
