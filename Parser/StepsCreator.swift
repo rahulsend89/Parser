@@ -263,7 +263,7 @@ public func startMyTest(completion: completionBlock? = nil){
     }
 }
 
-public func getMyFeatures() -> [Feature]?{
+public func getMyFeatures(runFeature: String) -> [Feature]?{
     func getDataFromFile(myurl: String)->NSData{
         let path = NSBundle.mainBundle().pathForResource(myurl, ofType: StepCreator.Key.suitesExtention)!
         let data = try! NSData(contentsOfFile:path,
@@ -277,7 +277,7 @@ public func getMyFeatures() -> [Feature]?{
     }
     if let suite = _suites.suite where suite.count > 0{
         for (_, _suite) in suite.enumerate(){
-            if let stories = _suite.stories, let type = _suite.type where type == Config.runFeature{
+            if let stories = _suite.stories, let type = _suite.type where type == runFeature{
                 var filePath: [Path] = []
                 for allStories in stories{
                     filePath.append(Path(allStories))

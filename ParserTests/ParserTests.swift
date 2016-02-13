@@ -26,55 +26,17 @@ class ParserTests: XCTestCase {
         dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block);
     }
     
-    func testTunner(){
-        var array: [Int] = []
-        
-        Given("^I have an empty array$") { match, completion in
-            array = []
-            XCTAssert(array.count == 0)
-            completion()
-            
-        }
-        
-        Given("^I have an array with the (\\w+) (\\d+) though (\\d+)$") { match, completion in
-            let start = match.groups[2]
-            let end = match.groups[3]
-            
-            array = Array(Int(start)! ..< Int(end)!)
-            XCTAssert(array.count > 0)
-            completion()
-        }
-        
-        When("^I add (\\d+) to the array$") { match, completion in
-            let number = Int(match.groups[1])!
-            array.append(number)
-            completion()
-        }
-        
-        When("^I filter the array for even numbers$") { match, completion in
-            array = array.filter { $0 % 2 == 0 }
-            completion()
-        }
-        
-        Then("^I should have (\\d+) items? in the array$") { match, completion in
-            let count = Int(match.groups[1])!
-            XCTAssert(array.count == count)
-            completion()
-        }
-        
-        And("^this is undefined statement for test$") { match, completion in
-            XCTAssert(false)
-            completion()
-        }
-        
+//    func testTunner(){
+//        
+//        
 //        let appExpectation = expectationWithDescription("LoginTest")
 //        startMyTest(){
 //            appExpectation.fulfill()
 //        }
 //        self.waitForExpectationsWithTimeout(40, handler: nil)
-    }
+//    }
     
-    func testExample() {
+    func xtestExample() {
         let filePath = Path("example.feature")
         let features = try! FeatureFileParser().parse([filePath])
         XCTAssert(features.count == 1)

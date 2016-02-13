@@ -3,7 +3,8 @@
         "Suite": [{
             "type": "example",
             "Stories": [
-                "example.feature"
+                "example.feature",
+                "example1.feature"
             ]
         }]
     }

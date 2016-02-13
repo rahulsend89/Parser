@@ -1,4 +1,4 @@
-Feature: An array
+Feature: An array second
 
 Scenario: Appending to an array
 Meta:@automated

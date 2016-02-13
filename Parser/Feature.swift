@@ -130,7 +130,7 @@ extension String{
                 }.map {
                     // Uppercase each word
                     $0.uppercaseFirstLetterString
-                }.joinWithSeparator("")
+                }.joinWithSeparator("_")
         }
     }
     

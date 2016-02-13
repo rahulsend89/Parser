@@ -16,10 +16,19 @@ import XCTest
 @testable import Parser
 
 public class BDDTest: XCTestCase {
+
+    var runFeature:String?
     
     func testRunNativeTests() {
-        let feature: Feature =  getMyFeatures()![0]
-        performFeature(feature)
+        guard self.dynamicType != BDDTest.self else { return }
+        guard let runFeature = runFeature else{
+            XCTFail("runFeature not mention")
+            return
+        }
+        let feature: [Feature] =  getMyFeatures(runFeature)!
+        for testFeature in feature{
+            performFeature(testFeature)
+        }
     }
     
     func performFeature(feature: Feature) {
@@ -59,23 +68,20 @@ public class BDDTest: XCTestCase {
         let typeString = strdup("v@:")
         feature.scenarios.forEach { scenario in
             print(scenario.name)
-            var i = 0
-            scenario.steps.forEach { step in
-                i++
-                // Create the block representing the test to be run
-                let block : @convention(block) ()->() = {
-                    StepCreator.sharedInstance.runStep(step){$0}
-                }
-                
-                // Create the Method and selector
-                let imp = imp_implementationWithBlock(unsafeBitCast(block, AnyObject.self))
-                let sel = sel_registerName(step.selectorCString)
-                
-                // Add this selector to ourselves
-                let success = class_addMethod(testCaseClass, sel, imp, typeString)
-                XCTAssertTrue(success, "Failed to add class method \(sel)")
+            // Create the block representing the test to be run
+            let block : @convention(block) (XCTestCase)->() = { innerSelf in
+                scenario.steps.forEach{ StepCreator.sharedInstance.runStep($0){$0}}
             }
             
+            // Create the Method and selector
+            let imp = imp_implementationWithBlock(unsafeBitCast(block, AnyObject.self))
+            let strSelName: String = "test_\(scenario.name.camelCaseify)"
+            let selName = strdup(strSelName)
+            let sel = sel_registerName(selName)
+            
+            // Add this selector to ourselves
+            let success = class_addMethod(testCaseClass, sel, imp, typeString)
+            XCTAssertTrue(success, "Failed to add class method \(sel)")
         }
         
         // The test class is constructed, register it
@@ -85,6 +91,7 @@ public class BDDTest: XCTestCase {
         testCaseClass.testInvocations().sort { (a,b) in NSStringFromSelector(a.selector) > NSStringFromSelector(b.selector) }.forEach { invocation in
             let testCase = (testCaseClass as! XCTestCase.Type).init(invocation: invocation)
             testCase.runTest()
+            print("\(testCase)___")
         }
         
     }
