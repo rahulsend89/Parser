@@ -17,8 +17,11 @@ import XCTest
 
 public class BDDTest: XCTestCase {
 
+    override public func recordFailureWithDescription(description: String, inFile filePath: String, atLine lineNumber: UInt, expected: Bool) {
+        
+    }
     var runFeature:String?
-    
+    var featureCount: Int = 0
     func testRunNativeTests() {
         guard self.dynamicType != BDDTest.self else { return }
         guard let runFeature = runFeature else{
@@ -26,18 +29,19 @@ public class BDDTest: XCTestCase {
             return
         }
         let feature: [Feature] =  getMyFeatures(runFeature)!
+        featureCount = feature.count-1
         for testFeature in feature{
             performFeature(testFeature)
         }
     }
     
     func performFeature(feature: Feature) {
-        // Create a test case to contain our tests
         let testClassName = "\(feature.name.camelCaseify)Tests"
         let testCaseClassOptional: AnyClass? = objc_allocateClassPair(XCTestCase.self, testClassName, 0)
-        guard let testCaseClass = testCaseClassOptional else { XCTFail("Could not create test case class"); return }
-        
-        // Return the correct number of tests
+        guard let testCaseClass = testCaseClassOptional else {
+            XCTFail("Could not create test case class"); return
+        }
+        Reporter.logText("Feature : \(feature.name)")
         let countBlock : @convention(block) (AnyObject) -> UInt = { _ in
             return UInt(feature.scenarios.count)
         }
@@ -46,7 +50,6 @@ public class BDDTest: XCTestCase {
         var success = class_addMethod(testCaseClass, sel, imp, strdup("I@:"))
         XCTAssertTrue(success)
         
-        // Return a name
         let nameBlock : @convention(block) (AnyObject) -> String = { _ in
             return feature.name.camelCaseify
         }
@@ -55,7 +58,6 @@ public class BDDTest: XCTestCase {
         success = class_addMethod(testCaseClass, nameSel, nameImp, strdup("@@:"))
         XCTAssertTrue(success)
         
-        // Return a test run class - make it the same as the current run
         let runBlock : @convention(block) (AnyObject) -> AnyObject! = { _ in
             return self.testRun!.dynamicType
         }
@@ -64,35 +66,69 @@ public class BDDTest: XCTestCase {
         success = class_addMethod(testCaseClass, runSel, runImp, strdup("#@:"))
         XCTAssertTrue(success)
         
-        // For each scenario, make an invocation that runs through the steps
+        
         let typeString = strdup("v@:")
-        feature.scenarios.forEach { scenario in
-            print(scenario.name)
-            // Create the block representing the test to be run
-            let block : @convention(block) (XCTestCase)->() = { innerSelf in
-                scenario.steps.forEach{ StepCreator.sharedInstance.runStep($0){$0}}
+        
+        var scenarios = 0
+        var failures = 0
+        var allSteps = 0
+        var scenariosVal = feature.scenarios
+        let length = scenariosVal.count-1
+        
+        let completion: ()->() = {
+            let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
+            Reporter.logXml(outFeatureFile.description)
+            Reporter.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
+            if self.featureCount == 0{
+                Reporter.saveLogs()
+                Reporter.saveXml()
             }
-            
-            // Create the Method and selector
-            let imp = imp_implementationWithBlock(unsafeBitCast(block, AnyObject.self))
-            let strSelName: String = "test_\(scenario.name.camelCaseify)"
-            let selName = strdup(strSelName)
-            let sel = sel_registerName(selName)
-            
-            // Add this selector to ourselves
-            let success = class_addMethod(testCaseClass, sel, imp, typeString)
-            XCTAssertTrue(success, "Failed to add class method \(sel)")
+            self.featureCount--
         }
         
-        // The test class is constructed, register it
+        for (var currentLength = 0; currentLength < length; currentLength++) {
+            var scenario = scenariosVal[currentLength]
+            if scenario.meta == .Automated{
+                Reporter.logText("Scenario : \(scenario.name)")
+                let block : @convention(block) (XCTestCase)->() = { innerSelf in
+                    let current = currentLength
+                    ++scenarios
+                    allSteps += scenario.steps.count
+                    for (index, step) in scenario.steps.enumerate() {
+                        Reporter.logText("Step : \(step)")
+                        let expectation =  AssertionMain.gatherFailingExpectations(){
+                            allSteps--
+                            StepCreator.sharedInstance.runStep(step)
+                        }
+                        if expectation.count > 0{
+                            ++failures
+                            Reporter.logText("Step Fails : \(step)")
+                            scenario.stepsOut.removeAtIndex(index)
+                            scenario.stepsOut.insert(.unsuccessful, atIndex: index)
+                            scenariosVal.removeAtIndex(current)
+                            scenariosVal.insert(scenario, atIndex: current)
+                        }
+                        if allSteps == 0 && scenarios == length{
+                            completion()
+                        }
+                    }
+                }
+                let imp = imp_implementationWithBlock(unsafeBitCast(block, AnyObject.self))
+                let strSelName: String = "test_\(scenario.name.camelCaseify)"
+                let selName = strdup(strSelName)
+                let sel = sel_registerName(selName)
+                
+                let success = class_addMethod(testCaseClass, sel, imp, typeString)
+                XCTAssertTrue(success, "Failed to add class method \(sel)")
+            }
+        }
+        
+        
         objc_registerClassPair(testCaseClass)
         
-        // Add the test to our test suite
         testCaseClass.testInvocations().sort { (a,b) in NSStringFromSelector(a.selector) > NSStringFromSelector(b.selector) }.forEach { invocation in
             let testCase = (testCaseClass as! XCTestCase.Type).init(invocation: invocation)
             testCase.runTest()
-            print("\(testCase)___")
+            }
         }
-        
     }
-}

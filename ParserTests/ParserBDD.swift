@@ -21,12 +21,12 @@ class ParserBDD: BDDTest {
         super.setUp()
         var array: [Int] = []
         
-        Given("^I have an empty array$") { match, completion in
+        Given("^I have an empty array$") { match in
             array = []
             XCTAssert(array.count == 0)
         }
         
-        Given("^I have an array with the numbers (\\d+) though (\\d+)$") { match, completion in
+        Given("^I have an array with the numbers (\\d+) though (\\d+)$") { match in
             let start = match.groups[1]
             let end = match.groups[2]
             
@@ -34,29 +34,29 @@ class ParserBDD: BDDTest {
             XCTAssert(array.count > 0)
         }
         
-        When("^I add (\\d+) to the array$") { match, completion in
+        When("^I add (\\d+) to the array$") { match in
             let number = Int(match.groups[1])!
             array.append(number)
         }
         
-        When("^I filter the array for even numbers$") { match, completion in
+        When("^I filter the array for even numbers$") { match in
             array = array.filter { $0 % 2 == 0 }
         }
         
-        Then("^I should have (\\d+) items? in the array$") { match, completion in
+        Then("^I should have (\\d+) items? in the array$") { match in
             let count = Int(match.groups[1])!
             XCTAssert(array.count == count)
         }
         
-        And("^this is undefined statement for test$") { match, completion in
+        And("^this is undefined statement for test$") { match in
             var test = false
             let appExpectation = self.expectationWithDescription("LoginTest")
             execute_after(0.1){
-                test = true
+                test = false
                 appExpectation.fulfill()
             }
             self.waitForExpectationsWithTimeout(40, handler: nil)
-            XCTAssert(test)
+            tryexpect(test, message: match.groups[0])
         }
         
     }

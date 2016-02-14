@@ -7,9 +7,9 @@
 //
 
 import Foundation
-public typealias completionBlock = () -> ()
+public typealias completionBlock = (String?) -> ()
 public struct StepHandler {
-    public typealias Handler = (RegexMatch, completionBlock ) throws -> ()
+    public typealias Handler = (RegexMatch) throws -> ()
 
   let expression: Regex
   let handler: Handler
@@ -87,7 +87,7 @@ public class StepCreator {
         ands.append(handler)
     }
     
-    func runStep(step: Step, completion: completionBlock) -> Bool {
+    func runStep(step: Step) -> Bool {
         var failure: ErrorType? = nil
         var execVal: (StepHandler, RegexMatch)? = nil
         switch step {
@@ -119,7 +119,7 @@ public class StepCreator {
         if let execVal = execVal {
             let (handler,match) = execVal
             do{
-                try handler.handler(match){completion()}
+                try handler.handler(match)
             }catch{
                 failure = error
             }
@@ -144,9 +144,6 @@ public class StepCreator {
 //        }else{
 //            completion()
 //        }
-
-        
-        print("step : \(step) failure: \(failure)")
         return failure == nil
     }
     
@@ -192,13 +189,13 @@ public class StepCreator {
             allSteps = 0
             var scenariosVal = feature.scenarios
             
-            let completionSub: completionBlock = {
+            let completionSub: completionBlock = { _ in
                 let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
                 Reporter.logXml(outFeatureFile.description)
                 Reporter.logText("\n\(scenarios - failures) scenarios passed, \(failures) scenarios failed.")
                 Reporter.saveLogs()
                 Reporter.saveXml()
-                completion()
+                completion(nil)
             }
             
             Reporter.logText("Feature : \(feature.name)")
@@ -211,22 +208,19 @@ public class StepCreator {
                     for (index, step) in scenario.steps.enumerate() {
                         Reporter.logText("Step : \(step)")
                         var outVal: Bool = false
-                        outVal = StepCreator.sharedInstance.runStep(step){
-                            allSteps--
-                            print("allSteps : \(allSteps)")
-                            if !outVal{
-                                scenario.stepsOut.removeAtIndex(index)
-                                scenario.stepsOut.insert(.unsuccessful, atIndex: index)
-                                scenariosVal.removeAtIndex(i)
-                                scenariosVal.insert(scenario, atIndex: i)
-                                
-                                Reporter.logText("Step Fails : \(step)")
-                                ++failures
-                            }
-                            if allSteps == 0{
-                                completionSub()
-                            }
+                        outVal = StepCreator.sharedInstance.runStep(step)
+                        if !outVal{
+                            scenario.stepsOut.removeAtIndex(index)
+                            scenario.stepsOut.insert(.unsuccessful, atIndex: index)
+                            scenariosVal.removeAtIndex(i)
+                            scenariosVal.insert(scenario, atIndex: i)
+                            
+                            Reporter.logText("Step Fails : \(step)")
+                            ++failures
                         }
+                        if allSteps == 0{
+                            completionSub(nil)
+                        }                        
                     }
                 }
             }
@@ -253,9 +247,9 @@ public func startMyTest(completion: completionBlock? = nil){
                 for allStories in stories{
                     filePath.append(Path(allStories))
                 }
-                StepCreator.sharedInstance.testWithFile(filePath){
+                StepCreator.sharedInstance.testWithFile(filePath){_ in
                     if let completion = completion{
-                        completion()
+                        completion(nil)
                     }
                 }
             }
@@ -303,9 +297,4 @@ public func Then(expression: String, closure: StepHandler.Handler) {
 
 public func And(expression: String, closure: StepHandler.Handler) {
   StepCreator.sharedInstance.and(expression, closure: closure)
-}
-public func expect(val: Bool)throws{
-    if !val{
-        throw StepError.NotTrue("\(val)")
-    }
 }

@@ -99,6 +99,7 @@ public class FeatureFileParser {
         
         featureName = nil
         scenarios = []
+        actualScenarios = []
     }
     
     func commitScenario() {
@@ -160,7 +161,7 @@ public class FeatureFileParser {
                         }
                     }
                 }
-                exscenario.name.appendContentsOf("example\(exi)")
+                exscenario.name.appendContentsOf(" Example \(exi)")
                 scenarios.append(exscenario)
             }
         }

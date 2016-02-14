@@ -36,13 +36,13 @@ class ParserTests: XCTestCase {
 //        self.waitForExpectationsWithTimeout(40, handler: nil)
 //    }
     
-    func xtestExample() {
+    func testExample() {
         let filePath = Path("example.feature")
         let features = try! FeatureFileParser().parse([filePath])
         XCTAssert(features.count == 1)
         XCTAssert(features[0].name == "An array")
         let scenarios = features[0].scenarios
-        XCTAssert(scenarios.count == 3)
+        XCTAssert(scenarios.count == 4)
         XCTAssert(scenarios[0].name == "Appending to an array")
         XCTAssert(scenarios[0].meta == .Automated)
         XCTAssert(scenarios[0].line == 3)
@@ -51,12 +51,12 @@ class ParserTests: XCTestCase {
         XCTAssert(scenarios[0].steps[2] == .Then("I should have 1 item in the array"))
         XCTAssert(scenarios[0].steps[3] == .And("this is undefined statement for test"))
         XCTAssert(scenarios[0].steps.count == 4)
-        XCTAssert(scenarios[1].name == "Filtering an array")
+        XCTAssert(scenarios[1].name == "Filtering an array Example 0")
         XCTAssert(scenarios[1].steps.count == 3)
         XCTAssert(scenarios[1].steps[0] == .Given("I have an array with the numbers 1 though 5"))
         XCTAssert(scenarios[1].steps[1] == .When("I filter the array for even numbers"))
         XCTAssert(scenarios[1].steps[2] == .Then("I should have 2 items in the array"))
-        XCTAssert(scenarios[2].name == "Filtering an array")
+        XCTAssert(scenarios[2].name == "Filtering an array Example 1")
         XCTAssert(scenarios[2].steps.count == 3)
         XCTAssert(scenarios[2].steps[0] == .Given("I have an array with the numbers 10 though 15"))
         XCTAssert(scenarios[2].steps[1] == .When("I filter the array for even numbers"))
