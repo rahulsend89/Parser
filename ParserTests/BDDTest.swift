@@ -89,8 +89,8 @@ public class BDDTest: XCTestCase {
         for (var currentLength = 0; currentLength < length; currentLength++) {
             var scenario = scenariosVal[currentLength]
             if scenario.meta == .Automated{
-                Reporter.logText("Scenario : \(scenario.name)")
                 let block : @convention(block) (XCTestCase)->() = { innerSelf in
+                    Reporter.logText("Scenario : \(scenario.name)")
                     let current = currentLength
                     ++scenarios
                     allSteps += scenario.steps.count
