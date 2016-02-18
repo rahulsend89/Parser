@@ -13,5 +13,5 @@ struct Config {
     static let runFeature = "example"
     static let textFile   = "logs.txt"
     static let xmlFile    = "logs.xml"
-    static let defaultDir = "features"
+    static let defaultDir = "features"    
 }

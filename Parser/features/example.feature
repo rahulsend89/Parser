@@ -4,7 +4,7 @@ Scenario: Appending to an array
 Meta:@automated
 Given I have an empty array
 When I add 1 to the array
-Then I should have 1 item in the array
+Then I should have 1 items in the array
 And this is undefined statement for test
 
 Scenario: Filtering an array

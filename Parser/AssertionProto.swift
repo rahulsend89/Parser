@@ -26,7 +26,7 @@ class AssertionMain {
         }
     }
     
-    class AssertionRecorder : AssertionProto {
+    class AssertionRecorder: AssertionProto {
         var assertions = [AssertionRecord]()
         init() {}
         func assert(assertion: Bool, message: String, location: AssertionMain.codeLocation) {
@@ -49,22 +49,18 @@ class AssertionMain {
         }
     }
     
-    class func gatherExpectations(silently silently: Bool = false, closure: () -> Void) -> [AssertionRecord] {
+    class func gatherExpectations(closure: () -> Void) -> [AssertionRecord] {
         let previousRecorder = Assertion.sharedInstance
         let recorder = AssertionRecorder()
         let handlers: [AssertionProto]
-        if silently {
-            handlers = [recorder]
-        } else {
-            handlers = [recorder, previousRecorder]
-        }
+        handlers = [recorder, previousRecorder]
         let dispatcher = Dispatcher(handlers: handlers)
         withAssertionHandler(dispatcher, closure: closure)
         return recorder.assertions
     }
     
-    class func gatherFailingExpectations(silently silently: Bool = false, closure: () -> Void) -> [AssertionRecord] {
-        let assertions = gatherExpectations(silently: silently, closure: closure)
+    class func gatherFailingExpectations(closure: () -> Void) -> [AssertionRecord] {
+        let assertions = gatherExpectations(closure)
         return assertions.filter { assertion in
             !assertion.success
         }
@@ -83,7 +79,7 @@ class AssertionMain {
     }
     
     
-    class codeLocation : NSObject {
+    class codeLocation: NSObject {
         let file: String
         let line: UInt
         override init() {
@@ -102,7 +98,7 @@ class AssertionMain {
     class ExceptionCapture {
         var handler: ((ErrorType) -> ())?
         var error: ErrorType?
-        var description:String {
+        var description: String {
             return "\(self.error)"
         }
         init(_ handler: ((ErrorType) -> ())?){

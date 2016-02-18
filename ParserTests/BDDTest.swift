@@ -16,11 +16,7 @@ import XCTest
 @testable import Parser
 
 public class BDDTest: XCTestCase {
-
-    override public func recordFailureWithDescription(description: String, inFile filePath: String, atLine lineNumber: UInt, expected: Bool) {
-        
-    }
-    var runFeature:String?
+    var runFeature: String?
     var featureCount: Int = 0
     func testRunNativeTests() {
         guard self.dynamicType != BDDTest.self else { return }
@@ -73,7 +69,14 @@ public class BDDTest: XCTestCase {
         var failures = 0
         var allSteps = 0
         var scenariosVal = feature.scenarios
-        let length = scenariosVal.count-1
+        let length = scenariosVal.count
+        let endAutoCount = scenariosVal.filter { (scenario) -> Bool in
+            if scenario.meta == .Automated{
+                return true
+            }else{
+                return false
+            }
+            }.count
         
         let completion: ()->() = {
             let outFeatureFile = Feature(name: feature.name, scenarios: scenariosVal, filePath: feature.filePath, actualScenarios: feature.actualScenarios)
@@ -86,19 +89,23 @@ public class BDDTest: XCTestCase {
             self.featureCount--
         }
         
-        for (var currentLength = 0; currentLength < length; currentLength++) {
+        for (var currentLength = 0; currentLength < length; ++currentLength) {
             var scenario = scenariosVal[currentLength]
+            let current = currentLength
             if scenario.meta == .Automated{
                 let block : @convention(block) (XCTestCase)->() = { innerSelf in
                     Reporter.logText("Scenario : \(scenario.name)")
-                    let current = currentLength
                     ++scenarios
                     allSteps += scenario.steps.count
                     for (index, step) in scenario.steps.enumerate() {
                         Reporter.logText("Step : \(step)")
                         let expectation =  AssertionMain.gatherFailingExpectations(){
                             allSteps--
-                            StepCreator.sharedInstance.runStep(step)
+                            let stepRunVal = StepCreator.sharedInstance.runStep(step)
+                            print("StepCreator.sharedInstance.runStep(step) : \(stepRunVal)")
+                            if !stepRunVal{
+                                tryexpect(false, message: "Step Not Defined : \(step)")
+                            }
                         }
                         if expectation.count > 0{
                             ++failures
@@ -108,7 +115,7 @@ public class BDDTest: XCTestCase {
                             scenariosVal.removeAtIndex(current)
                             scenariosVal.insert(scenario, atIndex: current)
                         }
-                        if allSteps == 0 && scenarios == length{
+                        if allSteps == 0 && scenarios == endAutoCount{
                             completion()
                         }
                     }

@@ -176,9 +176,6 @@ public class FeatureFileParser {
             if newState == .Feature {
                 commitFeature()
                 featureName = value
-            }else if newState == .Scenario {
-                commitScenario()
-                scenario = Scenario(name: value, steps: [], file: filePath, line: line)
             } else if newState == .Scenario {
                 commitScenario()
                 scenario = Scenario(name: value, steps: [], file: filePath, line: line)

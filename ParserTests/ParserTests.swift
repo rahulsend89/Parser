@@ -30,7 +30,8 @@ class ParserTests: XCTestCase {
 //        
 //        
 //        let appExpectation = expectationWithDescription("LoginTest")
-//        startMyTest(){
+//        startMyTest()
+//        execute_after(3.0) {
 //            appExpectation.fulfill()
 //        }
 //        self.waitForExpectationsWithTimeout(40, handler: nil)

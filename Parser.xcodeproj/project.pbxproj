@@ -192,8 +192,8 @@
 			isa = PBXGroup;
 			children = (
 				E8CF3A671C6E396B007E3F72 /* ParserBDD.swift */,
-				BE13A4E41C6F9D3D00678EDF /* AssertionProto.swift */,
 				E82C03861C6DDCCB00327081 /* BDDTest.swift */,
+				BE13A4E41C6F9D3D00678EDF /* AssertionProto.swift */,
 				E8C0698A1C636629006DBD1D /* ParserTests.swift */,
 				E8C0698C1C636629006DBD1D /* Info.plist */,
 			);

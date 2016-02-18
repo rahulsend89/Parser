@@ -43,21 +43,20 @@ class ParserBDD: BDDTest {
             array = array.filter { $0 % 2 == 0 }
         }
         
-        Then("^I should have (\\d+) items? in the array$") { match in
+        Then("^I should have (\\d+) items in the array$") { match in
             let count = Int(match.groups[1])!
-            XCTAssert(array.count == count)
+            tryexpect(array.count == count, message: match.groups[0])
         }
         
         And("^this is undefined statement for test$") { match in
             var test = false
             let appExpectation = self.expectationWithDescription("LoginTest")
             execute_after(0.1){
-                test = false
+                test = true
                 appExpectation.fulfill()
             }
             self.waitForExpectationsWithTimeout(40, handler: nil)
             tryexpect(test, message: match.groups[0])
         }
-        
     }
 }
