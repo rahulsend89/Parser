@@ -3,7 +3,7 @@
 //  ParserTests
 //
 //  Created by Rahul Malik on 2/4/16.
-//  Copyright © 2016 CitiusTech. All rights reserved.
+//  Copyright © 2016 Rahul Malik. All rights reserved.
 //
 
 import XCTest

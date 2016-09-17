@@ -3,7 +3,7 @@
 //  Parser
 //
 //  Created by Rahul Malik on 13/02/16.
-//  Copyright © 2016 CitiusTech. All rights reserved.
+//  Copyright © 2016 Rahul Malik. All rights reserved.
 //
 
 import Foundation

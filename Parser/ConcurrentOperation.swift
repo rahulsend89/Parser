@@ -3,7 +3,7 @@
 //  HealthConnect
 //
 //  Created by Rahul Malik on 19/12/15.
-//  Copyright © 2015 citiustech. All rights reserved.
+//  Copyright © 2015 Rahul Malik. All rights reserved.
 //
 
 import Foundation
