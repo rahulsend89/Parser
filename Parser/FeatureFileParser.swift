@@ -132,13 +132,13 @@ public class FeatureFileParser {
     
     func convertScenarioFromExample(){
         if let _scenario = scenario , let examples = _scenario.examples where examples.count > 0{
-            for (var exi = 0;exi < examples.count;exi++){
+            for (var exi = 0;exi < examples.count;exi += 1){
                 var exscenario = Scenario(name: _scenario.name, steps: _scenario.steps, file: _scenario.file, line: _scenario.line)
                 exscenario.examples = examples
                 exscenario.examples?.steps = _scenario.steps
                 exscenario.meta = _scenario.meta
                 for (_,exvalue) in examples.dictionaryArray.enumerate(){
-                    for (var i = 0 ; i < exscenario.steps.count ; i++){
+                    for (var i = 0 ; i < exscenario.steps.count ; i += 1){
                         var steps = exscenario.steps[i]
                         var stepExample = exscenario.examples!.steps[i]
                         //actual exscenario

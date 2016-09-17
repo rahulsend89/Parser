@@ -86,27 +86,27 @@ public class BDDTest: XCTestCase {
                 Reporter.saveLogs()
                 Reporter.saveXml()
             }
-            self.featureCount--
+            self.featureCount -= 1
         }
         
-        for (var currentLength = 0; currentLength < length; ++currentLength) {
+        for (var currentLength = 0; currentLength < length; currentLength += 1) {
             var scenario = scenariosVal[currentLength]
             let current = currentLength
             if scenario.meta == .Automated{
                 let block : @convention(block) (XCTestCase)->() = { innerSelf in
                     Reporter.logText("Scenario : \(scenario.name)")
-                    ++scenarios
+                    scenarios += 1
                     allSteps += scenario.steps.count
                     for (index, step) in scenario.steps.enumerate() {
                         Reporter.logText("Step : \(step)")
                         let expectation =  AssertionMain.gatherFailingExpectations(){
-                            allSteps--
+                            allSteps -= 1
                             if !StepCreator.sharedInstance.runStep(step){
                                 tryexpect(false, message: "Step Not Defined : \(step)")
                             }
                         }
                         if expectation.count > 0{
-                            ++failures
+                            failures += 1
                             Reporter.logText("Step Fails : \(step)")
                             scenario.stepsOut.removeAtIndex(index)
                             scenario.stepsOut.insert(.unsuccessful, atIndex: index)

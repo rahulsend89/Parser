@@ -12,7 +12,7 @@ import XCTest
 protocol AssertionProto {
     func assert(assertion: Bool, message: String, location: AssertionMain.codeLocation)
 }
-public func tryexpect(val: Bool, filename: StaticString = __FILE__, lineNo: UInt = __LINE__, message: String) {
+public func tryexpect(val: Bool, filename: StaticString = #file, lineNo: UInt = #line, message: String) {
     AssertionMain.expect(val, filename: filename, lineNo: lineNo, message: message)
 }
 
@@ -123,7 +123,7 @@ class AssertionMain {
             }
         }
     }
-    class func expect(val: Bool, filename: StaticString = __FILE__, lineNo: UInt = __LINE__, message: String) {
+    class func expect(val: Bool, filename: StaticString = #file, lineNo: UInt = #line, message: String) {
         Assertion.sharedInstance.assert(val, message: "_\(message)", location: codeLocation(file: filename, line: lineNo))
     }
 }
