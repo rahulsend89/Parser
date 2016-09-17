@@ -101,9 +101,7 @@ public class BDDTest: XCTestCase {
                         Reporter.logText("Step : \(step)")
                         let expectation =  AssertionMain.gatherFailingExpectations(){
                             allSteps--
-                            let stepRunVal = StepCreator.sharedInstance.runStep(step)
-                            print("StepCreator.sharedInstance.runStep(step) : \(stepRunVal)")
-                            if !stepRunVal{
+                            if !StepCreator.sharedInstance.runStep(step){
                                 tryexpect(false, message: "Step Not Defined : \(step)")
                             }
                         }

@@ -12,7 +12,7 @@ import XCTest
 protocol AssertionProto {
     func assert(assertion: Bool, message: String, location: AssertionMain.codeLocation)
 }
-public func tryexpect(val: Bool,filename: String = __FILE__,lineNo: UInt = __LINE__,message: String){
+public func tryexpect(val: Bool, filename: StaticString = __FILE__, lineNo: UInt = __LINE__, message: String) {
     AssertionMain.expect(val, filename: filename, lineNo: lineNo, message: message)
 }
 
@@ -40,7 +40,7 @@ class AssertionMain {
     
     class func withAssertionHandler(tempAssertionHandler: AssertionProto, closure: () throws -> Void) {
         let oldRecorder = Assertion.sharedInstance
-        let capturer = ExceptionCapture(){ _ in
+        let capturer = ExceptionCapture() { _ in
             Assertion.sharedInstance = oldRecorder
         }
         Assertion.sharedInstance = tempAssertionHandler
@@ -80,13 +80,13 @@ class AssertionMain {
     
     
     class codeLocation: NSObject {
-        let file: String
+        let file: StaticString
         let line: UInt
         override init() {
             file = "Unknown File"
             line = 0
         }
-        init(file: String, line: UInt) {
+        init(file: StaticString, line: UInt) {
             self.file = file
             self.line = line
         }
@@ -101,20 +101,20 @@ class AssertionMain {
         var description: String {
             return "\(self.error)"
         }
-        init(_ handler: ((ErrorType) -> ())?){
+        init(_ handler: ((ErrorType) -> ())?) {
             self.handler = handler
         }
-        func tryBlock(@noescape unsafeBlock: () throws -> () ){
-            do{
+        func tryBlock(@noescape unsafeBlock: () throws -> () ) {
+            do {
                 try unsafeBlock()
-            }catch let exception{
-                if let handler = self.handler{
+            } catch let exception {
+                if let handler = self.handler {
                     handler(exception)
                 }
             }
         }
     }
-
+    
     class Assertion: AssertionProto {
         static var sharedInstance: AssertionProto = Assertion()
         func assert(assertion: Bool, message: String, location: codeLocation) {
@@ -123,7 +123,7 @@ class AssertionMain {
             }
         }
     }
-    class func expect(val: Bool,filename: String = __FILE__,lineNo: UInt = __LINE__,message: String){
+    class func expect(val: Bool, filename: StaticString = __FILE__, lineNo: UInt = __LINE__, message: String) {
         Assertion.sharedInstance.assert(val, message: "_\(message)", location: codeLocation(file: filename, line: lineNo))
     }
 }
